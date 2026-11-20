@@ -28,6 +28,19 @@ asked for without echo. Host keys are checked against `~/.ssh/known_hosts`, the 
 known key passes, a changed key is refused, and an unknown key is shown with its fingerprint and
 asked about (with `/y` it is taken), then added to the file as OpenSSH would add it.
 
+## In the desktop
+
+The package ssh-desktop adds a viewer: `SSH.Open` takes the same options and opens a VT100 terminal
+of 80 columns and 24 lines (the package terminals) with a shell of the server; `SSH.Close` in its
+menu, or closing the viewer, ends the connection. When the server does not take the key and offers
+passwords, the viewer asks for the password. Messages about host keys go to System.Log; an unknown
+host key is taken only with `/y`. `tools/SSH.Tool` lists the commands.
+
+```
+portia.Install ssh-desktop
+SSH.Open me@example.org
+```
+
 ## What it speaks
 
 - key exchange curve25519-sha256 (RFC 8731) with the strict key exchange of OpenSSH, which closes
@@ -49,7 +62,10 @@ with the TLS library it uses; the data rate is some 80 KB a second on x86.
     src/SSHAuth.Mod          user authentication
     src/SSHChannels.Mod      the session channel
     src/ssh.Mod              the console commands
+    src/SSH.Mod              the viewer of the desktop (package ssh-desktop)
+    tools/SSH.Tool
     test/SSHTest.Mod         the test, with msg.txt and its signatures msg-*.sig
+    test/SSHDesktopTest.Mod  the test of the viewer
 
 Programs use the modules directly: `SSHTransport.Connect`, `SSHAuth.Start` and `SSHAuth.Key` or
 `SSHAuth.Password`, then `SSHChannels.OpenSession` and `Exec` or `Shell`, and `Step` until the
@@ -60,6 +76,8 @@ session is closed.
     SSHTest.Run      39 checks: the data types, a key of OpenSSH loaded with its fingerprint,
                      signatures made by ssh-keygen -Y sign (Ed25519, ECDSA P-256, RSA) checked,
                      known_hosts; no server is needed
+    SSHDesktopTest.Run  3 checks: SSH loaded, its usage line, a host without a server;
+                     needs the desktop's display (DISPLAY set; an Xvnc will do)
 
 Against a server, an sshd of OpenSSH started as an ordinary user on a free port (with its own host
 keys, `AuthorizedKeysFile` and `PidFile`) and `ssh.Exec /p port /i key 127.0.0.1 ...` do.
